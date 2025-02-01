@@ -168,12 +168,34 @@
             star.dataset.originalY = y;
             star.onclick = () => {
                 playClickSound();
+                incrementCoins(); // Call the function to increment coins
                 showPopup();
             };
             star.onmouseover = () => playHoverSound();
             star.onmouseout = () => stopHoverSound();
             document.body.appendChild(star);
             stars.push(star);
+        }
+
+        async function incrementCoins() {
+            const sessionId = localStorage.getItem('sessionId'); // Retrieve session ID
+            console.log('Incrementing coins for session:', sessionId); // Log session ID
+            try {
+                const response = await fetch('http://localhost:3000/api/coins/increment', { // Ensure the URL matches your server's
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sessionId })
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log('Coins updated:', data.coins);
+            } catch (error) {
+                console.error('Error updating coins:', error);
+            }
         }
 
         function generateDots(count) {
@@ -274,6 +296,17 @@
             backgroundMusic.muted = isMuted;
             document.getElementById('muteToggle').classList.toggle('muted', isMuted);
         }
+
+        function getSessionId() {
+            let sessionId = localStorage.getItem('sessionId');
+            if (!sessionId) {
+                sessionId = 'session-' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('sessionId', sessionId);
+            }
+            return sessionId;
+        }
+
+        const userId = getSessionId();
 
         window.onload = () => {
             resizeCanvas();
