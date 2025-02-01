@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Play on Mars</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: url('mars-background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body>
+    <a href="Homepage.html" class="back-button">Return to Earth</a>
+    <h1>Welcome to Mars!</h1>
+    <p>Let's play some out-of-this-world games!</p>
+    <script>
+        function goBack() {
+            document.body.style.opacity = 0;
+            setTimeout(() => {
+                window.location.href = 'Homepage.html';
+            }, 500);
+        }
+    </script>
+</body>
+</html> 

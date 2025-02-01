@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats on Saturn</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #f0e68c, #d2b48c);
+            overflow: hidden;
+        }
+        .planet {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80vw; /* Make the planet cover 80% of the viewport width */
+            height: 80vw; /* Maintain aspect ratio */
+            max-width: 800px; /* Limit the maximum size */
+            max-height: 800px;
+            background: url('saturn.png') no-repeat center center;
+            background-size: cover;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: spin 20s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotateY(0deg); }
+            to { transform: translate(-50%, -50%) rotateY(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <a href="Homepage.html" class="back-button">Return to Earth</a>
+    <div class="planet"></div>
+    <h1>Saturn Stats</h1>
+    <p>Explore your astronomical achievements!</p>
+    <script>
+        function goBack() {
+            document.body.style.opacity = 0;
+            setTimeout(() => {
+                window.location.href = 'Homepage.html';
+            }, 500);
+        }
+    </script>
+</body>
+</html> 

@@ -17,9 +17,9 @@
     </style>
 </head>
 <body>
-    <audio id="hoverSound" src="hover-sound.mp3" preload="auto"></audio>
-    <audio id="clickSound" src="click-sound.mp3" preload="auto"></audio>
-    <audio id="backgroundMusic" src="astral-music.mp3" preload="auto" loop autoplay></audio>
+    <audio id="hoverSound" src="SFX/hover-sound.mp3" preload="auto"></audio>
+    <audio id="clickSound" src="SFX/click-sound.mp3" preload="auto"></audio>
+    <audio id="backgroundMusic" src="SFX/astral-music.mp3" preload="auto" loop autoplay></audio>
 
     <canvas id="cursorCanvas"></canvas>
 
@@ -87,11 +87,12 @@
 
         function drawShootingStars() {
             shootingStars.forEach((star, index) => {
-                // Draw the star as a dot
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, 3, 0, Math.PI * 2);
-                ctx.fill();
+                // Draw the star using star.png
+                const img = new Image();
+                img.src = 'Images/star.png'; // Updated path
+                img.onload = () => {
+                    ctx.drawImage(img, star.x, star.y, 15, 15); // Increase size to 15x15
+                };
 
                 // Update star position
                 star.x += star.speedX;
@@ -119,7 +120,7 @@
                 }
 
                 // Remove star if it goes off screen
-                if (star.x < 0 || star.x > window.innerWidth || star.y < 0 || star.y > window.innerHeight) {
+                if (star.x < 0 || star.y < 0 || star.x > window.innerWidth || star.y > window.innerHeight) {
                     shootingStars.splice(index, 1);
                 }
             });
@@ -159,10 +160,10 @@
             star.className = 'star';
             star.style.left = `${x}px`;
             star.style.top = `${y}px`;
-            star.style.backgroundImage = "url('star.png')"; // Ensure correct path
+            star.style.backgroundImage = "url('Images/star.png')"; // Updated path
             star.style.backgroundSize = 'cover'; // Ensure the image covers the star
-            star.style.width = '70px'; // Ensure size is consistent
-            star.style.height = '70px';
+            star.style.width = '100px'; // Ensure size is consistent
+            star.style.height = '100px';
             star.dataset.originalX = x;
             star.dataset.originalY = y;
             star.onclick = () => {
