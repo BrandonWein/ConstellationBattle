@@ -35,13 +35,54 @@
     <div class="planet"></div>
     <h1>Mars Inventory</h1>
     <p>Check out your cosmic collection!</p>
+    <h1>Select a Constellation</h1>
+    <ul id="constellation-list"></ul>
+    <button id="select-constellation" disabled>Select</button>
+
     <script>
-        function goBack() {
-            document.body.style.opacity = 0;
-            setTimeout(() => {
-                window.location.href = 'Index.html';
-            }, 500);
+        const userId = 'some-unique-user-id'; // Replace with actual user ID logic
+
+        async function fetchConstellations() {
+            try {
+                const response = await fetch('/api/constellations');
+                const constellations = await response.json();
+                const listElement = document.getElementById('constellation-list');
+                constellations.forEach(constellation => {
+                    const li = document.createElement('li');
+                    li.textContent = constellation;
+                    li.onclick = () => selectConstellation(constellation);
+                    listElement.appendChild(li);
+                });
+            } catch (error) {
+                console.error('Error fetching constellations:', error);
+            }
         }
+
+        let selectedConstellation = null;
+
+        function selectConstellation(constellation) {
+            selectedConstellation = constellation;
+            document.getElementById('select-constellation').disabled = false;
+        }
+
+        document.getElementById('select-constellation').onclick = async function() {
+            if (selectedConstellation) {
+                try {
+                    await fetch(`/api/inventory/${userId}/constellations`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ constellations: [selectedConstellation] })
+                    });
+                    alert(`${selectedConstellation} added to your inventory!`);
+                } catch (error) {
+                    console.error('Error adding constellation:', error);
+                }
+            }
+        };
+
+        fetchConstellations();
     </script>
 </body>
 </html> 

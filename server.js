@@ -24,7 +24,8 @@ console.log('MongoDB connection code executed.');
 // Define a schema and model for user inventory
 const inventorySchema = new mongoose.Schema({
     userId: String,
-    items: [String] // Array of item names or IDs
+    items: [String], // Array of item names or IDs
+    constellations: [String] // Array of constellation names or IDs
 });
 
 const Inventory = mongoose.model('Inventory', inventorySchema);
@@ -46,6 +47,24 @@ app.post('/api/inventory/:userId', async (req, res) => {
     }
     await inventory.save();
     res.send(inventory);
+});
+
+// API endpoint to add constellations to a user's inventory
+app.post('/api/inventory/:userId/constellations', async (req, res) => {
+    try {
+        const { constellations } = req.body; // Get constellations from request body
+        let inventory = await Inventory.findOne({ userId: req.params.userId });
+        if (!inventory) {
+            inventory = new Inventory({ userId: req.params.userId, items: [], constellations });
+        } else {
+            inventory.constellations = [...new Set([...inventory.constellations, ...constellations])];
+        }
+        await inventory.save();
+        res.send(inventory);
+    } catch (err) {
+        console.error('Error updating constellations:', err);
+        res.status(500).send('Error updating constellations');
+    }
 });
 
 // Define a schema and model for user data
@@ -71,6 +90,14 @@ app.post('/api/coins/increment', async (req, res) => {
         console.error('Error updating coins:', err);
         res.status(500).send('Error updating coins');
     }
+});
+
+// List of available constellations
+const availableConstellations = ['Orion', 'Ursa Major', 'Cassiopeia', 'Scorpius', 'Leo'];
+
+// API endpoint to get available constellations
+app.get('/api/constellations', (req, res) => {
+    res.send(availableConstellations);
 });
 
 // Start the server
