@@ -3,26 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play on Mars</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Stream Chat Example</title>
     <style>
         body {
-            background: url('mars-background.jpg') no-repeat center center fixed;
-            background-size: cover;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        #chat-input {
+            display: flex;
+            padding: 10px;
+        }
+        #chat-input input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #chat-input button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #chat-input button:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        .message.user {
+            text-align: right;
+        }
+        .message.bot {
+            text-align: left;
         }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-button">Return to Earth</a>
-    <h1>Welcome to Mars!</h1>
-    <p>Let's play some out-of-this-world games!</p>
-    <script>
-        function goBack() {
-            document.body.style.opacity = 0;
-            setTimeout(() => {
-                window.location.href = 'Index.html';
-            }, 500);
+    <div id="chat-container"></div>
+    <div id="chat-input">
+        <input type="text" id="message-input" placeholder="Type your message here..." />
+        <button id="send-button">Send</button>
+    </div>
+
+    <script type="module">
+        import { StreamChat } from 'https://cdn.jsdelivr.net/npm/stream-chat@latest/dist/stream-chat.es.js';
+
+        async function initializeChat() {
+            try {
+                const client = StreamChat.getInstance('YOUR_API_KEY');
+
+                // Use the token generated server-side
+                const userToken = 'YOUR_GENERATED_USER_TOKEN';
+                console.log('User Token:', userToken);
+
+                // Connect user
+                await client.connectUser(
+                    {
+                        id: 'vishal-1',
+                        name: 'Vishal',
+                    },
+                    userToken
+                );
+                console.log('User connected');
+
+                // Create or get channel
+                const channel = client.channel('messaging', 'TestChannel');
+
+                // Fetch the channel state, subscribe to future updates
+                await channel.watch();
+                console.log('Channel watched');
+
+                // Send a test message
+                const { message } = await channel.sendMessage({ text: `Test message` });
+                console.log('Message sent:', message);
+
+                // Send a reaction
+                await channel.sendReaction(message.id, { type: 'love', user: { id: 'vishal-1' } });
+                console.log('Reaction added');
+            } catch (error) {
+                console.error('Error initializing chat:', error);
+            }
         }
+
+        initializeChat().catch(console.error);
     </script>
 </body>
-</html> 
+</html>

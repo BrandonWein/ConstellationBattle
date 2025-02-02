@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import { StreamChat } from "stream-chat";
+
 
 dotenv.config();
 
@@ -96,6 +98,24 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+const apiKey = process.env.API_KEY;
+const apiSecret = process.env.API_SECRET;
+
+if (!apiKey || !apiSecret) {
+    console.error("Missing API_KEY or API_SECRET in .env");
+    process.exit(1);
+}
+
+const serverClient = StreamChat.getInstance(apiKey, apiSecret);
+
+app.post("/get-token", (req, res) => {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: "User ID is required" });
+
+    const token = serverClient.createToken(userId);
+    res.json({ token });
+});
+
 // Endpoint to increment coins
 app.post('/api/coins/increment', async (req, res) => {
     const sessionId = req.body.sessionId; // Get session ID from request
@@ -132,6 +152,7 @@ app.get('/api/inventory/:userId/constellations', async (req, res) => {
         res.status(500).send('Error fetching constellations from inventory');
     }
 });
+
 
 // Start the server
 const port = process.env.PORT || 3000;
