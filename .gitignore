@@ -13,3 +13,4 @@ Thumbs.db
 
 # Other files to ignore
 .vscode/ 
+.gitgub\workflows
