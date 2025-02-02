@@ -14,6 +14,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow: hidden;
+            touch-action: none;
         }
         .planet {
             position: absolute;
@@ -73,14 +75,14 @@
     </header>
     <div>
         <h2>Select a Constellation</h2>
-        <select id="constellation-dropdown">
+        <select id="constellation-dropdown" style="display: none;">
             <option value="" disabled selected>Select a constellation</option>
         </select>
-        <button id="select-constellation" disabled>Select</button>
+        <button id="select-constellation" style="display: none;" disabled>Select Constellation</button>
     </div>
     <div>
         <h2>Your Selected Constellations</h2>
-        <select id="user-constellation-dropdown" disabled>
+        <select id="user-constellation-dropdown">
             <option value="" disabled selected>No constellations selected</option>
         </select>
     </div>
@@ -108,7 +110,6 @@
                     throw new Error('Network response was not ok');
                 }
                 const constellations = await response.json();
-                console.log('Fetched constellations:', constellations);
                 const dropdown = document.getElementById('constellation-dropdown');
                 dropdown.innerHTML = '<option value="" disabled selected>Select a constellation</option>';
                 constellations.forEach(constellation => {
@@ -129,7 +130,6 @@
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                console.log('Fetched user constellations:', data.constellations);
                 const userDropdown = document.getElementById('user-constellation-dropdown');
                 userDropdown.innerHTML = '<option value="" disabled selected>No constellations selected</option>';
                 data.constellations.forEach(constellation => {
@@ -167,13 +167,24 @@
 
         let selectedConstellation = null;
 
-        document.getElementById('constellation-dropdown').onchange = function() {
+        document.getElementById('constellation-dropdown').addEventListener('change', function() {
             selectedConstellation = this.value;
-            document.getElementById('select-constellation').disabled = false;
+            document.getElementById('select-constellation').disabled = !this.value;
+        });
+
+        document.getElementById('select-constellation').onclick = async function() {
+            const selectedConstellation = document.getElementById('constellation-dropdown').value;
+            if (selectedConstellation) {
+                addConstellationToInventory(selectedConstellation);
+            }
         };
 
-        fetchConstellations();
-        fetchUserConstellations();
+        // Check if the user has already selected a constellation
+        if (!localStorage.getItem('constellationSelected')) {
+            document.getElementById('constellation-dropdown').style.display = 'block';
+            document.getElementById('select-constellation').style.display = 'block';
+            fetchConstellations();
+        }
 
         async function addConstellationToInventory(constellation) {
             try {
@@ -193,15 +204,19 @@
                 console.log('Updated inventory:', updatedInventory);
                 alert(`${constellation} added to your inventory!`);
                 fetchUserConstellations(); // Refresh inventory list
+                localStorage.setItem('constellationSelected', 'true'); // Mark as selected
+                hideConstellationSelection(); // Hide selection UI
             } catch (error) {
                 console.error('Error adding constellation to inventory:', error);
             }
         }
 
-        document.getElementById('select-constellation').onclick = async function() {
-            addConstellationToInventory(selectedConstellation);
-            fetchUserConstellations();
-        };
+        function hideConstellationSelection() {
+            document.getElementById('constellation-dropdown').style.display = 'none';
+            document.getElementById('select-constellation').style.display = 'none';
+        }
+
+        fetchUserConstellations();
     </script>
 </body>
 </html> 

@@ -22,7 +22,7 @@ console.log('Starting server...');
 
 console.log('Attempting to connect to MongoDB...');
 console.log('MongoDB URI:', process.env.MONGODB_URI);
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => {
         console.error('Could not connect to MongoDB', err);
@@ -60,7 +60,7 @@ app.post('/api/inventory/:userId/constellations', async (req, res) => {
         if (!inventory) {
             inventory = new Inventory({ userId: req.params.userId, constellations });
         } else {
-            inventory.constellations.push(...constellations); // Allow duplicates
+            inventory.constellations = [...new Set([...inventory.constellations, ...constellations])];
         }
         await inventory.save();
         res.json(inventory);
