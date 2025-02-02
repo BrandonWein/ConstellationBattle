@@ -7,9 +7,9 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
+    cursor: none; /* Hide the default cursor */
     font-family: 'Orbitron', sans-serif; /* Space-like font */
     transition: opacity 0.5s ease-in-out; /* Page transition */
-    touch-action: none;
 }
 
 .navbar {
@@ -63,46 +63,102 @@ body {
 
 .star {
     position: absolute;
-    width: 100px; /* Ensure size is consistent */
-    height: 100px;
-    background-image: url('Images/star.png'); /* Updated path */
+    width: 45px;
+    height: 45px;
+    background-image: url('Images/star.png');
     background-size: cover;
-    background-repeat: no-repeat;
-    transform-origin: bottom;
     cursor: pointer;
     transition: transform 0.5s, filter 0.5s;
-    animation: float 10s infinite alternate ease-in-out;
-    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 1)); /* Brighter glow effect */
+    animation: pulse 2s infinite alternate ease-in-out;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 1));
 }
+
+/* .star:before {
+    content: '';
+    position: absolute;
+    top: -21px;
+    left: -15px;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 30px solid #FFD700;
+    transform: rotate(-35deg);
+} */
+
+/* .star:after {
+    content: '';
+    position: absolute;
+    top: -21px;
+    left: -15px;
+    width: 0;
+    height: 0;
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    border-bottom: 30px solid #FFD700;
+    transform: rotate(35deg);
+} */
 
 .star:hover {
-    filter: drop-shadow(0 0 40px rgba(255, 255, 255, 1.5)); /* Even brighter on hover */
+    filter: drop-shadow(0 0 40px rgba(255, 255, 255, 1.5));
 }
 
-@keyframes float {
-    0% { transform: translateY(0px); }
-    100% { transform: translateY(-10px); }
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1); /* Increase size */
+    }
 }
 
-.popup {
+.vector-parent {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(0);
-    background-color: rgba(0, 123, 255, 0.9);
+    transform: translate(-50%, -50%);
+    background-color: transparent;
     padding: 40px;
-    border-radius: 10px;
+    border-radius: 50%;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease-out;
     z-index: 1000;
-    color: white;
-    font-size: 1.2em;
+    color: #f1c40f;
+    font-size: 1.5em;
     text-align: center;
     max-width: 300px;
+    display: none;
+    border: none;
+    transition: transform 0.3s ease; /* Add transition for smooth effect */
 }
 
-.popup.show {
-    transform: translate(-50%, -50%) scale(1);
+.vector-parent:hover {
+    transform: translate(-50%, -50%) scale(1.1); /* Scale up on hover */
+}
+
+.alula-australis {
+    font-family: 'Rosario', sans-serif;
+    font-weight: 600;
+    color: #f1c40f; /* Yellow text color */
+}
+
+.frame-child, .frame-item, .ellipse-icon {
+    width: 100px;
+    height: 100px;
+    display: inline-block;
+    margin: 5px;
+    background-color: #f1c40f; /* Yellow color */
+    border-radius: 50%;
+}
+
+.ellipse-div {
+    background-color: #9b59b6; /* Purple background */
+    width: 200px;
+    height: 100px;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .close-btn {
@@ -159,4 +215,13 @@ body {
     pointer-events: none;
     opacity: 0.8;
     transition: transform 0.1s, opacity 0.5s;
-} 
+}
+
+#popup img {
+    border: none; /* Remove any border */
+    width: auto; /* Maintain original aspect ratio */
+    height: auto;
+    max-width: 100%; /* Ensure it fits within the popup */
+    display: block;
+    margin: 0 auto; /* Center the image */
+}
