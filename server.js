@@ -2,17 +2,27 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
 
 dotenv.config();
 
 const app = express();
+
+// Use CORS middleware properly
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:5500'], // Allowed origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
+    credentials: true
+}));
+
 app.use(express.json());
 
 console.log('Starting server...');
 
 console.log('Attempting to connect to MongoDB...');
 console.log('MongoDB URI:', process.env.MONGODB_URI);
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('Connected to MongoDB'))
     .catch(err => {
         console.error('Could not connect to MongoDB', err);
@@ -30,18 +40,11 @@ const inventorySchema = new mongoose.Schema({
 
 const Inventory = mongoose.model('Inventory', inventorySchema);
 
-// API endpoint to get a user's inventory
-app.get('/api/inventory/:userId', async (req, res) => {
-    const inventory = await Inventory.findOne({ userId: req.params.userId });
-    if (!inventory) return res.status(404).send('Inventory not found');
-    res.send(inventory);
-});
-
 // API endpoint to update a user's inventory
-app.post('/api/inventory/:userId', async (req, res) => {
-    let inventory = await Inventory.findOne({ userId: req.params.userId });
+app.post('/api/inventory/:req.body.sessionId;', async (req, res) => {
+    let inventory = await Inventory.findOne({ userId: req.params.sessionId});
     if (!inventory) {
-        inventory = new Inventory({ userId: req.params.userId, items: req.body.items });
+        inventory = new Inventory({ userId: req.params.sessionId, items: req.body.items });
     } else {
         inventory.items = req.body.items;
     }
@@ -52,18 +55,36 @@ app.post('/api/inventory/:userId', async (req, res) => {
 // API endpoint to add constellations to a user's inventory
 app.post('/api/inventory/:userId/constellations', async (req, res) => {
     try {
-        const { constellations } = req.body; // Get constellations from request body
+        const { constellations } = req.body;
         let inventory = await Inventory.findOne({ userId: req.params.userId });
         if (!inventory) {
-            inventory = new Inventory({ userId: req.params.userId, items: [], constellations });
+            inventory = new Inventory({ userId: req.params.userId, constellations });
         } else {
-            inventory.constellations = [...new Set([...inventory.constellations, ...constellations])];
+            inventory.constellations.push(...constellations); // Allow duplicates
         }
         await inventory.save();
-        res.send(inventory);
+        res.json(inventory);
     } catch (err) {
         console.error('Error updating constellations:', err);
         res.status(500).send('Error updating constellations');
+    }
+});
+
+// Endpoint to add items to a user's inventory
+app.post('/api/inventory/:userId/items', async (req, res) => {
+    try {
+        const { items } = req.body;
+        let inventory = await Inventory.findOne({ userId: req.params.userId });
+        if (!inventory) {
+            inventory = new Inventory({ userId: req.params.userId, items });
+        } else {
+            inventory.items = [...new Set([...inventory.items, ...items])];
+        }
+        await inventory.save();
+        res.json(inventory);
+    } catch (err) {
+        console.error('Error adding items to inventory:', err);
+        res.status(500).send('Error adding items to inventory');
     }
 });
 
@@ -92,12 +113,24 @@ app.post('/api/coins/increment', async (req, res) => {
     }
 });
 
-// List of available constellations
-const availableConstellations = ['Orion', 'Ursa Major', 'Cassiopeia', 'Scorpius', 'Leo'];
-
 // API endpoint to get available constellations
 app.get('/api/constellations', (req, res) => {
-    res.send(availableConstellations);
+    const constellations = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+    res.json(constellations);
+});
+
+// API endpoint to get constellations from a user's inventory
+app.get('/api/inventory/:userId/constellations', async (req, res) => {
+    try {
+        const inventory = await Inventory.findOne({ userId: req.params.userId });
+        if (!inventory) {
+            return res.json({ constellations: [] });
+        }
+        res.json({ constellations: inventory.constellations });
+    } catch (err) {
+        console.error('Error fetching constellations from inventory:', err);
+        res.status(500).send('Error fetching constellations from inventory');
+    }
 });
 
 // Start the server

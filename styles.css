@@ -7,9 +7,9 @@ body {
     justify-content: center;
     align-items: center;
     position: relative;
-    cursor: none; /* Hide the default cursor */
     font-family: 'Orbitron', sans-serif; /* Space-like font */
     transition: opacity 0.5s ease-in-out; /* Page transition */
+    touch-action: none;
 }
 
 .navbar {
@@ -74,32 +74,6 @@ body {
     animation: float 10s infinite alternate ease-in-out;
     filter: drop-shadow(0 0 20px rgba(255, 255, 255, 1)); /* Brighter glow effect */
 }
-
-/* .star:before {
-    content: '';
-    position: absolute;
-    top: -21px;
-    left: -15px;
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-bottom: 30px solid #FFD700;
-    transform: rotate(-35deg);
-} */
-
-/* .star:after {
-    content: '';
-    position: absolute;
-    top: -21px;
-    left: -15px;
-    width: 0;
-    height: 0;
-    border-left: 15px solid transparent;
-    border-right: 15px solid transparent;
-    border-bottom: 30px solid #FFD700;
-    transform: rotate(35deg);
-} */
 
 .star:hover {
     filter: drop-shadow(0 0 40px rgba(255, 255, 255, 1.5)); /* Even brighter on hover */
