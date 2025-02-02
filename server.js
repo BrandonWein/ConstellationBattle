@@ -3,8 +3,6 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import { StreamChat as StreamChatAlias } from 'stream-chat';
-
 
 dotenv.config();
 
@@ -37,7 +35,8 @@ console.log('MongoDB connection code executed.');
 const inventorySchema = new mongoose.Schema({
     userId: String,
     items: [String], // Array of item names or IDs
-    constellations: [String] // Array of constellation names or IDs
+    constellations: [String], // Array of constellation names or IDs
+    equippedConstellation: String
 });
 
 const Inventory = mongoose.model('Inventory', inventorySchema);
@@ -93,28 +92,12 @@ app.post('/api/inventory/:userId/items', async (req, res) => {
 // Define a schema and model for user data
 const userSchema = new mongoose.Schema({
     sessionId: { type: String, required: true, unique: true },
-    coins: { type: Number, default: 0 }
+    coins: { type: Number, default: 0 },
+    wins: { type: Number, default: 0 },
+    losses: { type: Number, default: 0 }
 });
 
 const User = mongoose.model('User', userSchema);
-
-const apiKey = process.env.API_KEY;
-const apiSecret = process.env.API_SECRET;
-
-if (!apiKey || !apiSecret) {
-    console.error("Missing API_KEY or API_SECRET in .env");
-    process.exit(1);
-}
-
-const serverClient = StreamChatAlias.getInstance(apiKey, apiSecret);
-
-app.post("/get-token", (req, res) => {
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: "User ID is required" });
-
-    const token = serverClient.createToken(userId);
-    res.json({ token });
-});
 
 // Endpoint to increment coins
 app.post('/api/coins/increment', async (req, res) => {
@@ -132,6 +115,24 @@ app.post('/api/coins/increment', async (req, res) => {
         res.status(500).send('Error updating coins');
     }
 });
+
+app.post('/api/coins/decrement', async (req, res) => {
+    const sessionId = req.body.sessionId; // Get session ID from request
+    try {
+        const user = await User.findOneAndUpdate(
+            { sessionId },
+            { $inc: { coins: -1 } },
+            { new: true, upsert: true } // Create the user if it doesn't exist
+        );
+        console.log(`Coin removed for session: ${sessionId}. Total coins: ${user.coins}`);
+
+        res.send(user);
+    } catch (err) {
+        console.error('Error updating coins:', err);
+        res.status(500).send('Error updating coins');
+    }
+});
+
 
 // API endpoint to get available constellations
 app.get('/api/constellations', (req, res) => {
@@ -174,7 +175,7 @@ app.post('/queue', (req, res) => {
         // Remove the first two players from the queue
         queue = queue.slice(2);
     }
-
+    
     res.json({ matchFound });
 });
 
@@ -200,6 +201,68 @@ function simulateBattle(attr1, attr2) {
     const story = `In an epic battle, ${winner} emerged victorious!`;
     return { winner, story };
 }
+
+// Endpoint to equip a constellation
+app.post('/api/user/:sessionId/equip', async (req, res) => {
+    const { sessionId } = req.params;
+    const { constellation } = req.body;
+
+    try {
+        // Update the equipped constellation in the database
+        await Inventory.findOneAndUpdate(
+            { userId: sessionId },
+            { $set: { equippedConstellation: constellation } }
+        );
+
+        res.status(200).send({ message: 'Constellation equipped successfully!' });
+    } catch (error) {
+        console.error('Error equipping constellation:', error);
+        res.status(500).send({ error: 'Failed to equip constellation' });
+    }
+});
+
+// Endpoint to get user constellations, equipped constellation, and coins
+app.get('/api/user/:sessionId/data', async (req, res) => {
+    const { sessionId } = req.params;
+
+    try {
+        const user = await User.findOne({ sessionId });
+
+        if (!user) {
+            return res.status(404).send({ error: 'User not found' });
+        }
+
+        res.status(200).send({
+            constellations: user.constellations || [],
+            equippedConstellation: user.equippedConstellation || 'None',
+            coins: user.coins || 0, // Send coins data from user collection
+            wins: user.wins || 0,
+            losses: user.losses || 0
+        });
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        res.status(500).send({ error: 'Failed to fetch user data' });
+    }
+});
+
+// Endpoint to update battle results
+app.post('/api/user/:sessionId/battle-result', async (req, res) => {
+    const { sessionId } = req.params;
+    const { result } = req.body; // 'win' or 'loss'
+
+    try {
+        const user = await User.findOneAndUpdate(
+            { sessionId },
+            result === 'win' ? { $inc: { wins: 1 } } : { $inc: { losses: 1 } },
+            { new: true, upsert: true }
+        );
+
+        res.status(200).send({ message: 'Battle result updated successfully!' });
+    } catch (error) {
+        console.error('Error updating battle result:', error);
+        res.status(500).send({ error: 'Failed to update battle result' });
+    }
+});
 
 // Start the server
 const port = process.env.PORT || 3000;

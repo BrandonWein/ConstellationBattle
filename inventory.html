@@ -7,88 +7,291 @@
     <link rel="stylesheet" href="styles.css">
     <style>
         body {
-            background: linear-gradient(to bottom, #ff6f61, #ff3d3d);
-            font-family: Arial, sans-serif;
-            color: #fff;
+            background: linear-gradient(to bottom right, #2B0000, #000000);
+            font-family: 'Courier New', Courier, monospace;
+            color: #ddd;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             overflow: hidden;
-            touch-action: none;
+            position: relative;
+            cursor: none; /* Hide default cursor */
+            opacity: 0;
+            animation: fadeIn 1s forwards;
         }
-        .planet {
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .fire-cursor {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 80vw;
-            height: 80vw;
-            max-width: 800px;
-            max-height: 800px;
-            background: url('mars.png') no-repeat center center;
-            background-size: cover;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 69, 0, 0.8); /* Fire-like color */
             border-radius: 50%;
-            transform: translate(-50%, -50%);
-            animation: spin 20s linear infinite;
+            pointer-events: none;
+            z-index: 1000;
+            transition: transform 0.1s ease-out;
         }
-        @keyframes spin {
-            from { transform: translate(-50%, -50%) rotateY(0deg); }
-            to { transform: translate(-50%, -50%) rotateY(360deg); }
+        .fire-trail {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 69, 0, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 999;
+            animation: fadeOut 0.5s forwards;
+        }
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
         }
         .back-button {
             display: inline-block;
             margin-bottom: 20px;
             padding: 10px 20px;
-            background-color: #333;
+            background-color: #111;
             color: #fff;
             text-decoration: none;
             border-radius: 5px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            box-shadow: 0 0 10px #000;
+        }
+        .coin-count {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+        }
+        .coin-count img {
+            width: 50px;
+            height: 50px;
+            margin-right: 5px;
         }
         header {
             text-align: center;
             margin-bottom: 40px;
+            text-shadow: 2px 2px 5px #000;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 0 20px #000;
+        }
+        .section {
+            flex: 1;
+            margin: 0 10px;
+            text-align: center;
         }
         select, button {
             padding: 10px;
-            margin-top: 20px;
             font-size: 16px;
             border-radius: 5px;
             border: none;
-            display: block;
-            margin: 10px auto;
+            background-color: #222;
+            color: #fff;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 0 5px #000;
         }
         button:disabled {
-            background-color: #ccc;
+            background-color: #555;
         }
         #inventory-list {
-            margin-top: 30px;
+            margin-top: 20px;
             text-align: left;
+            list-style: none;
+            padding: 0;
+        }
+        #congrats-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 0 20px #000;
+            animation: popupTween 0.6s forwards;
+        }
+        @keyframes popupTween {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+            }
+            70% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        .gradient-button {
+            background: linear-gradient(90deg, #ff6f61, #ff3d3d, #ff6f61);
+            background-size: 200% 200%;
+            animation: gradientAnimation 3s linear infinite;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
             display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+        .showcase {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .showcase img {
+            width: 100px;
+            height: auto;
+            margin: 10px;
+            border: 2px solid #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .description {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 5px;
+            color: #fff;
+            text-align: center;
+        }
+        #equip-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            box-shadow: 0 0 20px #000;
+            z-index: 1001;
+        }
+        #equipped-pet {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px #000;
+        }
+        /* Ensure no global animations are applied */
+        body, html {
+            overflow: hidden; /* Prevent any scrolling that might cause sliding */
+        }
+        .sand-dot {
+            position: absolute;
+            width: 2px; /* Smaller size to reduce lag */
+            height: 2px; /* Smaller size to reduce lag */
+            background-color: sandybrown; /* Sand color */
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .ash-dot {
+            position: absolute;
+            width: 2px; /* Small size for ash effect */
+            height: 2px; /* Small size for ash effect */
+            background-color: red; /* Red color for ash */
+            border-radius: 50%;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
+    <div class="sand"></div>
     <a href="index.html" class="back-button">Return to Earth</a>
+    <div class="coin-count">
+        <img src="/Images/star.png" alt="Coin">
+        <span id="coin-count">0</span>
+    </div>
     <header>
         <h1>Mars Inventory</h1>
         <p>Check out your cosmic collection!</p>
     </header>
-    <div>
-        <h2>Select a Constellation</h2>
-        <select id="constellation-dropdown" style="display: none;">
-            <option value="" disabled selected>Select a constellation</option>
-        </select>
-        <button id="select-constellation" style="display: none;" disabled>Select Constellation</button>
+    <div class="container" id="main-container">
+        <div class="section" id="constellation-section">
+            <h2>Select a Constellation</h2>
+            <select id="constellation-dropdown">
+                <option value="" disabled selected>Select a constellation</option>
+            </select>
+            <button id="select-constellation" disabled>Select Constellation</button>
+        </div>
+        <div class="section" id="user-constellation-section">
+            <h2>Your Selected Constellations</h2>
+            <select id="user-constellation-dropdown">
+                <option value="" disabled selected>No constellations selected</option>
+            </select>
+        </div>
+        <div class="section" id="inventory-section">
+            <h2>Confirmation</h2>
+            <ul id="inventory-list"></ul>
+            <button class="gradient-button" id="equip-button">Equip</button>
+        </div>
     </div>
-    <div>
-        <h2>Your Selected Constellations</h2>
-        <select id="user-constellation-dropdown">
-            <option value="" disabled selected>No constellations selected</option>
-        </select>
+
+    <div id="congrats-popup">
+        <h2>Congratulations!</h2>
+        <p>You have selected your first constellation!</p>
+        <button onclick="closeCongratsPopup()">Close</button>
     </div>
-    <div>
-        <h2>Your Inventory</h2>
-        <ul id="inventory-list"></ul>
+
+    <div class="showcase">
+        <h2>Showcase</h2>
+        <div id="showcase-images"></div>
+    </div>
+
+    <div class="description" id="description-box">
+        <h3>Constellation Description</h3>
+        <p id="description-text"></p>
+    </div>
+
+    <div id="equip-popup">You have equipped a pet!</div>
+
+    <div id="equipped-pet">Equipped Pet: None</div>
+
+    <div id="inventory" style="position: fixed; bottom: 0; left: 0; width: 100%; background-color: rgba(0, 0, 0, 0.8); color: #fff; padding: 10px; text-align: center;">
+        <span>Inventory: </span>
+        <span id="inventory-items">No items</span>
     </div>
 
     <script>
@@ -101,7 +304,28 @@
             return sessionId;
         }
 
-        const sessionId = getSessionId(); // Replace with the actual user ID
+        const sessionId = getSessionId();
+        let coinCount = 0;
+
+        // Fire effect on mouse
+        const fireCursor = document.createElement('div');
+        fireCursor.className = 'fire-cursor';
+        document.body.appendChild(fireCursor);
+
+        document.addEventListener('mousemove', (e) => {
+            fireCursor.style.left = `${e.pageX}px`;
+            fireCursor.style.top = `${e.pageY}px`;
+
+            const trail = document.createElement('div');
+            trail.className = 'fire-trail';
+            trail.style.left = `${e.pageX}px`;
+            trail.style.top = `${e.pageY}px`;
+            document.body.appendChild(trail);
+
+            setTimeout(() => {
+                trail.remove();
+            }, 500);
+        });
 
         async function fetchConstellations() {
             try {
@@ -110,6 +334,7 @@
                     throw new Error('Network response was not ok');
                 }
                 const constellations = await response.json();
+
                 const dropdown = document.getElementById('constellation-dropdown');
                 dropdown.innerHTML = '<option value="" disabled selected>Select a constellation</option>';
                 constellations.forEach(constellation => {
@@ -123,6 +348,163 @@
             }
         }
 
+        async function fetchUserData() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${sessionId}/data`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                
+                // Update coin count from the user data
+                const coinCount = data.coins || 0;
+                document.getElementById('coin-count').textContent = coinCount;
+
+                // Update equipped pet display
+                const equippedPet = data.equippedConstellation || 'None';
+                document.getElementById('equipped-pet').textContent = `Equipped Pet: ${equippedPet}`;
+
+                // Show selection screen only if no constellations are equipped
+                if (!data.equippedConstellation) {
+                    document.getElementById('constellation-section').style.display = 'block';
+                } else {
+                    document.getElementById('constellation-section').style.display = 'none';
+                }
+
+                // Populate equip dropdown
+                const userDropdown = document.getElementById('user-constellation-dropdown');
+                userDropdown.innerHTML = '<option value="" disabled selected>Select a constellation</option>';
+                data.constellations.forEach(constellation => {
+                    const option = document.createElement('option');
+                    option.value = constellation;
+                    option.textContent = constellation;
+                    userDropdown.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        }
+
+        function showDescription(constellation) {
+            const descriptions = {
+                Aries: "Aries, the cosmic trailblazer, charges headfirst into the unknown with fiery enthusiasm and a zest for adventure!",
+                Taurus: "Taurus, the celestial gourmet, savors life's pleasures with a steadfast determination and a love for all things luxurious.",
+                Gemini: "Gemini, the cosmic chatterbox, flits between worlds with a curious mind and a knack for storytelling that captivates all.",
+                Cancer: "Cancer, the lunar nurturer, cradles the universe in a warm embrace, offering comfort and a safe haven for all.",
+                Leo: "Leo, the solar superstar, dazzles the cosmos with regal flair and a heart as bold as the sun itself.",
+                Virgo: "Virgo, the cosmic perfectionist, meticulously organizes the stars with a keen eye for detail and a love for order.",
+                Libra: "Libra, the celestial diplomat, balances the scales of the universe with grace, charm, and a quest for harmony.",
+                Scorpio: "Scorpio, the cosmic enigma, delves into the depths of the unknown with intensity and a magnetic allure.",
+                Sagittarius: "Sagittarius, the cosmic explorer, gallops across the galaxy with boundless optimism and a thirst for knowledge.",
+                Capricorn: "Capricorn, the celestial architect, scales the heights of the universe with ambition and a steadfast resolve.",
+                Aquarius: "Aquarius, the cosmic visionary, pours out innovation and eccentricity, lighting up the stars with unique brilliance.",
+                Pisces: "Pisces, the cosmic dreamer, swims through the celestial seas with intuition and a heart full of compassion."
+            };
+
+            const descriptionBox = document.getElementById('description-box');
+            const descriptionText = document.getElementById('description-text');
+            descriptionText.textContent = descriptions[constellation] || "Description not available.";
+            descriptionBox.style.display = 'block';
+        }
+
+        document.getElementById('constellation-dropdown').addEventListener('change', function() {
+            document.getElementById('select-constellation').disabled = !this.value;
+        });
+
+        document.getElementById('select-constellation').onclick = async function() {
+            const selectedConstellation = document.getElementById('constellation-dropdown').value;
+            if (selectedConstellation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/${sessionId}/constellations`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ constellations: [selectedConstellation] })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const updatedInventory = await response.json();
+                    console.log('Updated inventory:', updatedInventory);
+                    fetchUserData(); // Refresh data to update UI
+                    showCongratsPopup(); // Show popup for first constellation
+                } catch (error) {
+                    console.error('Error adding constellation to inventory:', error);
+                }
+            }
+        };
+
+        document.getElementById('equip-button').onclick = async function() {
+            const selectedConstellation = document.getElementById('user-constellation-dropdown').value;
+            if (selectedConstellation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/${sessionId}/equip`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ constellation: selectedConstellation })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    showEquipPopup();
+                    // Update the equipped pet display
+                    document.getElementById('equipped-pet').textContent = `Equipped Pet: ${selectedConstellation}`;
+                    localStorage.setItem('equippedConstellation', selectedConstellation); // Persist equipped constellation
+                } catch (error) {
+                    console.error('Error equipping constellation:', error);
+                }
+            }
+        };
+
+        function incrementCoinCount() {
+            coinCount += 1;
+            document.getElementById('coin-count').textContent = coinCount;
+        }
+
+        function hideConstellationSelection() {
+            document.getElementById('constellation-section').style.display = 'none';
+        }
+
+        function showCongratsPopup() {
+            const popup = document.getElementById('congrats-popup');
+            popup.style.display = 'block';
+            popup.style.animation = 'popupTween 0.6s forwards';
+            popup.style.boxShadow = '0 0 10px 5px rgba(255, 255, 255, 0.5)'; // Add glow effect
+        }
+
+        function closeCongratsPopup() {
+            document.getElementById('congrats-popup').style.display = 'none';
+        }
+
+        function showEquipPopup() {
+            const popup = document.getElementById('equip-popup');
+            popup.style.display = 'block';
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 2000);
+        }
+
+        // Ensure no JavaScript is causing the screen to slide
+        // Check for any event listeners or functions that might affect the layout
+
+        // Example: Remove any global animations or transitions
+        // document.addEventListener('DOMContentLoaded', () => {
+        //     // Remove any unwanted animations
+        //     const elements = document.querySelectorAll('*');
+        //     elements.forEach(el => {
+        //         el.style.transition = 'none';
+        //         el.style.animation = 'none';
+        //     });
+        // });
+
         async function fetchUserConstellations() {
             try {
                 const response = await fetch(`http://localhost:3000/api/inventory/${sessionId}/constellations`);
@@ -130,93 +512,134 @@
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
+
+                // Populate equip dropdown
                 const userDropdown = document.getElementById('user-constellation-dropdown');
-                userDropdown.innerHTML = '<option value="" disabled selected>No constellations selected</option>';
+                userDropdown.innerHTML = '<option value="" disabled selected>Select a constellation</option>';
                 data.constellations.forEach(constellation => {
                     const option = document.createElement('option');
                     option.value = constellation;
                     option.textContent = constellation;
                     userDropdown.appendChild(option);
                 });
-                userDropdown.disabled = data.constellations.length === 0;
+
+                // Update equipped pet display
+                const equippedPet = data.equippedConstellation || localStorage.getItem('equippedConstellation') || 'None';
+                document.getElementById('equipped-pet').textContent = `Equipped Pet: ${equippedPet}`;
+
+                // Hide selection screen if a constellation is equipped
+                if (equippedPet !== 'None') {
+                    document.getElementById('constellation-section').style.display = 'none';
+                } else {
+                    document.getElementById('constellation-section').style.display = 'block';
+                }
+
             } catch (error) {
                 console.error('Error fetching user constellations:', error);
             }
         }
 
-        async function incrementCoins(sessionId) {
-            try {
-                const response = await fetch('http://localhost:3000/api/coins/increment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ sessionId: sessionId })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const data = await response.json();
-                console.log('Coins incremented:', data);
-            } catch (error) {
-                console.error('Error incrementing coins:', error);
-            }
-        }
-
-        let selectedConstellation = null;
-
-        document.getElementById('constellation-dropdown').addEventListener('change', function() {
-            selectedConstellation = this.value;
-            document.getElementById('select-constellation').disabled = !this.value;
-        });
-
-        document.getElementById('select-constellation').onclick = async function() {
-            const selectedConstellation = document.getElementById('constellation-dropdown').value;
-            if (selectedConstellation) {
-                addConstellationToInventory(selectedConstellation);
-            }
-        };
-
-        // Check if the user has already selected a constellation
-        if (!localStorage.getItem('constellationSelected')) {
-            document.getElementById('constellation-dropdown').style.display = 'block';
-            document.getElementById('select-constellation').style.display = 'block';
-            fetchConstellations();
-        }
-
-        async function addConstellationToInventory(constellation) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/inventory/${sessionId}/constellations`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ constellations: [constellation] })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
-                const updatedInventory = await response.json();
-                console.log('Updated inventory:', updatedInventory);
-                alert(`${constellation} added to your inventory!`);
-                fetchUserConstellations(); // Refresh inventory list
-                localStorage.setItem('constellationSelected', 'true'); // Mark as selected
-                hideConstellationSelection(); // Hide selection UI
-            } catch (error) {
-                console.error('Error adding constellation to inventory:', error);
-            }
-        }
-
-        function hideConstellationSelection() {
-            document.getElementById('constellation-dropdown').style.display = 'none';
-            document.getElementById('select-constellation').style.display = 'none';
-        }
-
         fetchUserConstellations();
+
+        function updateInventoryDisplay(items) {
+            const inventoryItems = document.getElementById('inventory-items');
+            inventoryItems.textContent = items.length > 0 ? items.join(', ') : 'No items';
+        }
+
+        // Example function to fetch inventory items
+        async function fetchInventory() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${sessionId}/inventory`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                updateInventoryDisplay(data.items);
+            } catch (error) {
+                console.error('Error fetching inventory:', error);
+            }
+        }
+
+        fetchInventory();
+
+        function navigateTo(url) {
+            document.body.style.animation = 'fadeOut 1s forwards';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1000);
+        }
+
+        function createSandDot(x, y) {
+            const sandDot = document.createElement('div');
+            sandDot.className = 'sand-dot';
+            sandDot.style.left = `${x}px`;
+            sandDot.style.top = `${y}px`;
+            document.body.appendChild(sandDot);
+
+            const speedX = (Math.random() - 0.5) * 10; // Reduced speed for smoother animation
+            const speedY = (Math.random() - 0.5) * 10; // Reduced speed for smoother animation
+
+            function moveSandDot() {
+                const rect = sandDot.getBoundingClientRect();
+                sandDot.style.left = `${rect.left + speedX}px`;
+                sandDot.style.top = `${rect.top + speedY}px`;
+
+                // Remove the dot if it goes out of bounds
+                if (rect.left < 0 || rect.left > window.innerWidth || rect.top < 0 || rect.top > window.innerHeight) {
+                    sandDot.remove();
+                } else {
+                    requestAnimationFrame(moveSandDot);
+                }
+            }
+
+            moveSandDot();
+        }
+
+        function generateSandDots(count) {
+            for (let i = 0; i < count; i++) {
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                createSandDot(x, y);
+            }
+        }
+
+        function createAshDot(x, y) {
+            const ashDot = document.createElement('div');
+            ashDot.className = 'ash-dot';
+            ashDot.style.left = `${x}px`;
+            ashDot.style.top = `${y}px`;
+            document.body.appendChild(ashDot);
+
+            const speedX = (Math.random() - 0.5) * 5; // Slower speed for ash effect
+            const speedY = (Math.random() - 0.5) * 5; // Slower speed for ash effect
+
+            function moveAshDot() {
+                const rect = ashDot.getBoundingClientRect();
+                ashDot.style.left = `${rect.left + speedX}px`;
+                ashDot.style.top = `${rect.top + speedY}px`;
+
+                // Remove the dot if it goes out of bounds
+                if (rect.left < 0 || rect.left > window.innerWidth || rect.top < 0 || rect.top > window.innerHeight) {
+                    ashDot.remove();
+                } else {
+                    requestAnimationFrame(moveAshDot);
+                }
+            }
+
+            moveAshDot();
+        }
+
+        function generateAshDots() {
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+            createAshDot(x, y);
+        }
+
+        window.onload = () => {
+            // ... existing onload functions ...
+            generateSandDots(300); // Generate fewer sand dots for performance
+            setInterval(generateAshDots, 200); // Continuously generate ash dots
+        };
     </script>
 </body>
 </html> 

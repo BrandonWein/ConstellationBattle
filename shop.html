@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constellation Shop</title>
+    <style>
+        body {
+            background-color: #87CEEB; /* Bright blue sky */
+            color: #333;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+            cursor: url('Images/Leaf-cursor.png'), auto; /* Leaf cursor image */
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .sun {
+            width: 100px;
+            height: 100px;
+            background-color: #FFD700;
+            border-radius: 50%;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            box-shadow: 0 0 50px #FFD700;
+        }
+        .cloud {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+        }
+        .cloud1, .cloud2, .cloud3 {
+            width: 60px;
+            height: 60px;
+            top: 50px;
+            left: 50px;
+            animation: moveClouds 20s linear infinite;
+        }
+        .cloud1::before, .cloud2::before, .cloud3::before {
+            width: 40px;
+            height: 40px;
+            top: -20px;
+            left: 20px;
+        }
+        .cloud1::after, .cloud2::after, .cloud3::after {
+            width: 50px;
+            height: 50px;
+            top: 10px;
+            left: -30px;
+        }
+        .cloud2 {
+            top: 100px;
+            right: 100px;
+            animation: moveClouds 25s linear infinite reverse;
+        }
+        .cloud3 {
+            top: 150px;
+            left: 200px;
+            animation: moveClouds 30s linear infinite;
+        }
+        @keyframes moveClouds {
+            0% { transform: translateX(-100vw); }
+            100% { transform: translateX(100vw); }
+        }
+        .bird {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #000;
+            border-radius: 50%;
+            top: 50px;
+            animation: flyBirds 10s linear infinite;
+        }
+        .bird2 {
+            top: 180px;
+            left: 250px;
+            animation: flyBirds 12s linear infinite reverse;
+        }
+        @keyframes flyBirds {
+            0% { transform: translateX(-100vw); }
+            100% { transform: translateX(100vw); }
+        }
+        .hills {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(to top, #228B22, #32CD32);
+            border-top-left-radius: 50%;
+            border-top-right-radius: 50%;
+        }
+        .tree {
+            position: absolute;
+            bottom: 150px;
+            left: 50px;
+            width: 50px;
+            height: 150px;
+            background-color: #8B4513;
+            border-radius: 10px;
+        }
+        .tree::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: -25px;
+            width: 100px;
+            height: 100px;
+            background-color: #228B22;
+            border-radius: 50%;
+        }
+        .shopkeeper {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 18px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        .shelf {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 150px;
+            width: 80%;
+        }
+        .constellation {
+            width: 100px;
+            height: 100px;
+            background-size: cover;
+            background-position: center;
+            margin: 10px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .constellation:hover {
+            transform: scale(1.1);
+        }
+        .shelf::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            background-color: #8B4513;
+            bottom: -5px;
+            left: 0;
+            border-radius: 5px;
+        }
+        #popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            text-align: center;
+        }
+        #popup button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #back-button {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #f44336;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .error {
+            background-color: #f44336;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        #return-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .grass {
+            position: absolute;
+            width: 5px;
+            height: 10px;
+            background-color: #32CD32;
+            border-radius: 2px;
+            animation: fall 3s linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sun"></div>
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
+    <div class="bird"></div>
+    <div class="bird bird2"></div>
+    <div class="hills"></div>
+    <div class="tree"></div>
+    <div class="shopkeeper" id="shopkeeper">Welcome to the Constellation Shop!</div>
+    <button id="return-home" onclick="navigateTo('index.html')">Return Home</button>
+    <div class="shelf" id="shelf">
+        <!-- Constellations will be dynamically added here -->
+    </div>
+    <div id="popup">
+        <div id="constellation-description"></div>
+        <button id="buy-button">Buy</button>
+        <button id="back-button">Back</button>
+        <div id="error-message" class="error" style="display: none;">You cannot afford this constellation!</div>
+    </div>
+
+    <script>
+        const constellations = [
+            { name: "Aries", stars: 4, description: "The Ram, a symbol of courage and determination." },
+            { name: "Taurus", stars: 5, description: "The Bull, representing strength and tenacity." },
+            { name: "Gemini", stars: 6, description: "The Twins, known for their adaptability and communication." },
+            { name: "Cancer", stars: 5, description: "The Crab, symbolizing protection and nurturing." },
+            { name: "Leo", stars: 9, description: "The Lion, representing leadership and pride." },
+            { name: "Virgo", stars: 7, description: "The Maiden, known for precision and attention to detail." },
+            { name: "Libra", stars: 7, description: "The Scales, symbolizing balance and harmony." },
+            { name: "Scorpio", stars: 8, description: "The Scorpion, representing passion and power." },
+            { name: "Sagittarius", stars: 8, description: "The Archer, known for exploration and freedom." },
+            { name: "Capricorn", stars: 10, description: "The Goat, symbolizing ambition and discipline." },
+            { name: "Aquarius", stars: 11, description: "The Water Bearer, representing innovation and progress." },
+            { name: "Pisces", stars: 12, description: "The Fish, known for empathy and intuition." }
+        ];
+
+        const ownedConstellations = ["Gemini"]; // Example of owned constellations
+        let userStars = 10; // Example of user's current stars
+        const shelf = document.getElementById('shelf');
+        const popup = document.getElementById('popup');
+        const descriptionDiv = document.getElementById('constellation-description');
+        const buyButton = document.getElementById('buy-button');
+        const backButton = document.getElementById('back-button');
+        const shopkeeper = document.getElementById('shopkeeper');
+        const errorMessage = document.getElementById('error-message');
+
+        constellations.forEach(constellation => {
+            if (!ownedConstellations.includes(constellation.name)) {
+                const div = document.createElement('div');
+                div.className = 'constellation';
+                div.style.backgroundImage = `url('images/${constellation.name.toLowerCase()}.png')`;
+                div.addEventListener('click', () => {
+                    descriptionDiv.innerHTML = `<strong>${constellation.name}</strong><br>${constellation.description}<br>Price: ${constellation.stars} stars`;
+                    buyButton.onclick = () => buyConstellation(constellation);
+                    errorMessage.style.display = 'none';
+                    popup.style.display = 'block';
+                });
+                shelf.appendChild(div);
+            }
+        });
+
+        function buyConstellation(constellation) {
+            if (userStars >= constellation.stars) {
+                alert(`You have bought ${constellation.name} for ${constellation.stars} stars!`);
+                shopkeeper.textContent = "Thank you for your purchase! Come again!";
+                userStars -= constellation.stars; // Deduct stars
+                popup.style.display = 'none';
+                // Add the constellation to the user's inventory
+            } else {
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        backButton.onclick = () => {
+            popup.style.display = 'none';
+        };
+
+        window.onclick = function(event) {
+            if (event.target == popup) {
+                popup.style.display = 'none';
+            }
+        }
+
+        // Function to create clouds
+        function createCloud() {
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            cloud.style.width = `${Math.random() * 50 + 50}px`;
+            cloud.style.height = `${Math.random() * 30 + 30}px`;
+            cloud.style.top = `${Math.random() * 100}px`;
+            cloud.style.left = '-100px';
+            cloud.style.animation = `moveClouds ${Math.random() * 20 + 20}s linear infinite`;
+            document.body.appendChild(cloud);
+
+            setTimeout(() => {
+                cloud.remove();
+            }, 20000);
+        }
+
+        // Function to create birds
+        function createBird() {
+            const bird = document.createElement('div');
+            bird.className = 'bird';
+            bird.style.top = `${Math.random() * 50}px`;
+            bird.style.animation = `flyBirds ${Math.random() * 10 + 10}s linear infinite`;
+            document.body.appendChild(bird);
+
+            setTimeout(() => {
+                bird.remove();
+            }, 10000);
+        }
+
+        // Generate clouds and birds at intervals
+        setInterval(createCloud, 5000);
+        setInterval(createBird, 7000);
+
+        // Function to navigate with fade-out effect
+        function navigateTo(url) {
+            document.body.style.animation = 'fadeOut 1s forwards';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1000);
+        }
+
+        // Function to create falling grass
+        function createGrass(x, y) {
+            const grass = document.createElement('div');
+            grass.className = 'grass';
+            grass.style.left = `${x}px`;
+            grass.style.top = `${y}px`;
+            document.body.appendChild(grass);
+
+            setTimeout(() => {
+                grass.remove();
+            }, 3000);
+        }
+
+        // Event listener for mouse movement to drop grass
+        document.addEventListener('mousemove', (event) => {
+            createGrass(event.clientX, event.clientY);
+        });
+    </script>
+</body>
+</html> 
