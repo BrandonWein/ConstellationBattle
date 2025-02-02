@@ -4,10 +4,13 @@
 # Node modules
 node_modules/
 
-# Logs and Yml
+
+# Logs
 *.log
-# *.github
 
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Other files to ignore
+.vscode/ 
