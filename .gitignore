@@ -6,7 +6,7 @@ node_modules/
 
 # Logs and Yml
 *.log
-*.github
+# *.github
 
 # OS generated files
 .DS_Store
