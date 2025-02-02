@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import { StreamChat } from "stream-chat";
+import { StreamChat as StreamChatAlias } from 'stream-chat';
 
 
 dotenv.config();
@@ -106,7 +106,7 @@ if (!apiKey || !apiSecret) {
     process.exit(1);
 }
 
-const serverClient = StreamChat.getInstance(apiKey, apiSecret);
+const serverClient = StreamChatAlias.getInstance(apiKey, apiSecret);
 
 app.post("/get-token", (req, res) => {
     const { userId } = req.body;
@@ -153,6 +153,53 @@ app.get('/api/inventory/:userId/constellations', async (req, res) => {
     }
 });
 
+let queue = [];
+
+app.post('/queue', (req, res) => {
+    const { inQueue } = req.body;
+    const userId = req.ip; // Use IP as a simple user identifier
+
+    if (inQueue) {
+        if (!queue.includes(userId)) {
+            queue.push(userId);
+        }
+    } else {
+        queue = queue.filter(id => id !== userId);
+    }
+
+    // Check for match
+    let matchFound = false;
+    if (queue.length >= 2) {
+        matchFound = true;
+        // Remove the first two players from the queue
+        queue = queue.slice(2);
+    }
+
+    res.json({ matchFound });
+});
+
+app.post('/api/battle', async (req, res) => {
+    const { constellation1, constellation2 } = req.body;
+
+    // Example attributes for constellations
+    const attributes = {
+        Aries: { power: 10, speed: 8 },
+        Taurus: { power: 9, speed: 7 },
+        // Add attributes for other constellations
+    };
+
+    // Simulate battle logic
+    const result = simulateBattle(attributes[constellation1], attributes[constellation2]);
+
+    res.json({ winner: result.winner, story: result.story });
+});
+
+function simulateBattle(attr1, attr2) {
+    // Simple logic to decide winner based on attributes
+    const winner = attr1.power + attr1.speed > attr2.power + attr2.speed ? 'Constellation 1' : 'Constellation 2';
+    const story = `In an epic battle, ${winner} emerged victorious!`;
+    return { winner, story };
+}
 
 // Start the server
 const port = process.env.PORT || 3000;
