@@ -41,8 +41,55 @@
                 transform: scale(1);
             }
             50% {
-                transform: scale(1.1); /* Slightly increase size */
+                transform: scale(2); /* Increase size more */
             }
+        }
+
+        #popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            /* background-color: rgba(0, 0, 0, 0.8); */
+            padding: 20px;
+            /* border-radius: 10px; */
+            /* color: #fff; */
+            text-align: center;
+            animation: popupTween 0.8s forwards;
+            pointer-events: none; /* Disable pointer events during animation */
+            /* box-shadow: none; Remove shadow */
+        }
+
+        #popup.animated {
+            pointer-events: auto; /* Enable pointer events after animation */
+        }
+
+        @keyframes popupTween {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+            }
+            60% {
+                transform: translate(-50%, -50%) scale(1.2);
+            }
+            80% {
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        body {
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+        }
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
         }
     </style>
 </head>
@@ -56,7 +103,7 @@
     <div class="navbar">
         <a href="play.html" class="nav-button">Play</a>
         <a href="inventory.html" class="nav-button">Inventory</a>
-        <a href="stats.html" class="nav-button">Stats</a>
+        <a href="shop.html" class="nav-button">Shop</a>
     </div>
 
     <div class="vector-parent" id="popup">
@@ -79,7 +126,6 @@
         const canvas = document.getElementById('cursorCanvas');
         const ctx = canvas.getContext('2d');
         const trail = [];
-        const trailDuration = 500; // Trail duration in milliseconds
         const shootingStars = [];
         const dots = [];
         const stars = [];
@@ -105,81 +151,94 @@
             ctx.beginPath();
             ctx.lineWidth = 2;
             ctx.strokeStyle = '#FFD700';
+
             const now = Date.now();
             trail.forEach((point, index) => {
-                if (now - point.time > trailDuration || index >= maxTrailLength) {
+                if (now - point.time > 500) {
                     trail.splice(index, 1);
-                } else {
-                    ctx.lineTo(point.x, point.y);
                 }
             });
-            ctx.stroke();
-        }
 
-        function updateTrail() {
-            drawTrail();
+            if (trail.length < 2) return;
+
+            ctx.moveTo(trail[0].x, trail[0].y);
+
+            for (let i = 1; i < trail.length - 2; i++) {
+                const xc = (trail[i].x + trail[i + 1].x) / 2;
+                const yc = (trail[i].y + trail[i + 1].y) / 2;
+                ctx.quadraticCurveTo(trail[i].x, trail[i].y, xc, yc);
+            }
+
+            ctx.quadraticCurveTo(
+                trail[trail.length - 2].x,
+                trail[trail.length - 2].y,
+                trail[trail.length - 1].x,
+                trail[trail.length - 1].y
+            );
+
+            ctx.stroke();
+
+            // Subtle glow at the front of the trail
+            if (trail.length > 0) {
+                const front = trail[trail.length - 1];
+                ctx.beginPath();
+                ctx.arc(front.x, front.y, 5, 0, Math.PI * 2); // Smaller glow
+                ctx.fillStyle = 'rgba(255, 215, 0, 0.3)'; // More subtle
+                ctx.fill();
+            }
         }
 
         function createShootingStar() {
-            const angle = Math.random() * Math.PI * 2; // Random angle
-            const speed = Math.random() * 3 + 2; // Random speed
+            const direction = Math.random() * Math.PI * 2; // Random direction
+            const speed = Math.random() * 3 + 2;
             const star = {
                 x: Math.random() * window.innerWidth,
                 y: Math.random() * window.innerHeight,
-                speedX: Math.cos(angle) * speed,
-                speedY: Math.sin(angle) * speed,
+                speedX: Math.cos(direction) * speed,
+                speedY: Math.sin(direction) * speed,
                 trail: []
             };
             shootingStars.push(star);
         }
 
         function drawShootingStars() {
-            shootingStars.forEach((star, index) => {
-                // Draw the star using star.png
-                const img = new Image();
-                img.src = 'Images/star.png'; // Updated path
-                img.onload = () => {
-                    ctx.drawImage(img, star.x, star.y, 15, 15); // Increase size to 15x15
-                };
-
-                // Update star position
+            shootingStars.forEach(star => {
                 star.x += star.speedX;
                 star.y += star.speedY;
 
-                // Add current position to trail
-                star.trail.push({ x: star.x, y: star.y });
+                star.trail.push({ x: star.x, y: star.y, time: Date.now() });
 
-                // Draw the trail
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-                ctx.lineWidth = 1;
                 ctx.beginPath();
-                star.trail.forEach((trailPoint, trailIndex) => {
-                    if (trailIndex === 0) {
-                        ctx.moveTo(trailPoint.x, trailPoint.y);
-                    } else {
-                        ctx.lineTo(trailPoint.x, trailPoint.y);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'; // Brighter line
+                ctx.lineWidth = 2; // Slightly thicker line
+
+                star.trail.forEach((point, index) => {
+                    if (Date.now() - point.time > 500) {
+                        star.trail.splice(index, 1);
                     }
                 });
+
+                if (star.trail.length > 0) {
+                    ctx.moveTo(star.trail[0].x, star.trail[0].y);
+                    for (let i = 1; i < star.trail.length; i++) {
+                        ctx.lineTo(star.trail[i].x, star.trail[i].y);
+                    }
+                }
+
                 ctx.stroke();
 
-                // Remove old trail points
-                if (star.trail.length > 10) {
-                    star.trail.shift();
-                }
-
-                // Remove star if it goes off screen
-                if (star.x < 0 || star.y < 0 || star.x > window.innerWidth || star.y > window.innerHeight) {
-                    shootingStars.splice(index, 1);
-                }
+                // Less glow for shooting star
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, 3, 0, Math.PI * 2); // Smaller glow
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'; // Less intense
+                ctx.fill();
             });
         }
 
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas for new frame
-            drawShootingStars();
+        function updateTrail() {
             drawTrail();
-            moveDots();
-            requestAnimationFrame(animate);
+            drawShootingStars();
+            requestAnimationFrame(updateTrail);
         }
 
         function createDot(x, y) {
@@ -214,7 +273,8 @@
             star.style.height = '45px';
             star.dataset.popupImage = popupImage;
 
-            const randomDelay = Math.random() * 2;
+            // Apply a random animation delay
+            const randomDelay = Math.random() * 2; // Random delay between 0 and 2 seconds
             star.style.animationDelay = `${randomDelay}s`;
 
             star.onclick = () => {
@@ -234,6 +294,7 @@
                 createDot(x, y);
             }
         }
+        
 
         function generateConstellations() {
             const constellations = {
@@ -279,7 +340,7 @@
                 ]
             };
 
-            const scaleFactor = 300; // Adjust scale for constellation size
+            const scaleFactor = 500; // Adjust scale for constellation size
 
             Object.values(constellations).forEach(pattern => {
                 pattern.forEach(point => {
@@ -309,7 +370,7 @@
 
         function showPopup(imagePath) {
             const popup = document.getElementById('popup');
-            popup.innerHTML = ''; // Clear previous content
+            popup.innerHTML = '';
 
             const popupImage = document.createElement('img');
             popupImage.src = imagePath;
@@ -327,12 +388,21 @@
             closeButton.onclick = closePopup;
             popup.appendChild(closeButton);
 
+            // Reset transform before displaying
+            popup.style.transform = 'translate(-50%, -50%) scale(0)';
             popup.style.display = 'block';
+            popup.style.animation = 'popupTween 0.8s forwards';
+
+            // Add a class to enable pointer events after animation
+            setTimeout(() => {
+                popup.classList.add('animated');
+            }, 800); // Match the duration of the animation
         }
 
         function closePopup() {
             const popup = document.getElementById('popup');
             popup.style.display = 'none';
+            popup.classList.remove('animated'); // Remove class when closing
         }
 
         function playHoverSound() {
@@ -363,14 +433,21 @@
             document.getElementById('muteToggle').classList.toggle('muted', isMuted);
         }
 
+        function navigateTo(url) {
+            document.body.style.animation = 'fadeOut 1s forwards';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1000);
+        }
+
         window.onload = () => {
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
             generateDots(500); // More dots for a starry effect
             generateConstellations(); // Generate fixed constellations
             document.addEventListener('mousemove', moveElements);
-            setInterval(createShootingStar, Math.random() * 1000 + 1000); // Create a shooting star every 1-2 seconds
-            animate();
+            setInterval(createShootingStar, 1000); // Create a shooting star every 1 second
+            updateTrail();
             playBackgroundMusic(); // Ensure background music plays on load
         };
     </script>

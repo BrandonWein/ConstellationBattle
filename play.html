@@ -3,67 +3,358 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Matchmaking System</title>
+    <title>Battle Ground</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            opacity: 0;
+            animation: fadeIn 1s forwards;
+            background-color: #d2b48c; /* Sand color for arena */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            overflow: hidden;
+            position: relative;
         }
-        #queue-button, #join-game-button {
-            padding: 15px 30px;
-            font-size: 16px;
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .arena {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .constellation {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            transition: transform 0.5s, opacity 0.5s;
+            animation: spin 1s infinite linear;
+        }
+        .spectator {
+            position: absolute;
+            width: 20px; /* Increased size for spectators */
+            height: 20px; /* Increased size for spectators */
+            background-color: #fff;
+            border-radius: 50%;
+            animation: cheer 1s infinite alternate;
+        }
+        @keyframes cheer {
+            from { transform: translateY(0); }
+            to { transform: translateY(-5px); }
+        }
+        .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background-color: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+        .battle-ground {
+            width: 80%;
+            height: 60%;
+            background-color: #444;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .pet {
+            width: 100px;
+            height: 100px;
+            background-size: cover;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            transition: transform 0.5s;
+        }
+        .pet.left {
+            transform: translateX(-200px);
+        }
+        .pet.right {
+            transform: translateX(200px);
+        }
+        .start-fight {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            background-color: #888;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin: 5px;
+            font-size: 18px;
+            z-index: 1001;
         }
-        #queue-button {
-            background-color: #007bff;
-            color: white;
+        #result-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff;
+            text-align: center;
+            z-index: 1000;
         }
-        #join-game-button {
-            background-color: #28a745;
-            color: white;
+        .projectile {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
             display: none;
         }
+        .battle-log {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 95%;
+            max-height: 100px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 14px;
+            z-index: 2;
+        }
+        .audience {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            z-index: 0;
+        }
+        .audience .circle {
+            width: 30px;
+            height: 30px;
+            background-color: #fff;
+            border-radius: 50%;
+            animation: bounce 1s infinite alternate;
+            margin: 5px;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-15px); }
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .dot {
+            position: absolute;
+            width: 100px; /* Start size */
+            height: 100px; /* Start size */
+            background-color: rgba(255, 0, 0, 0.2); /* Transparent red */
+            border: 4px solid red; /* Bold red outline */
+            border-radius: 50%;
+            transition: transform 2s linear; /* Adjusted transition to 2 seconds */
+            z-index: 1000; /* High z-index to appear above other elements */
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js"></script>
 </head>
 <body>
-    <button id="queue-button">Join Queue</button>
-    <button id="join-game-button">Join Game</button>
+    <div class="arena">
+        <div class="constellation" id="player-constellation"></div>
+        <div class="constellation" id="enemy-constellation"></div>
+    </div>
+    <div class="battle-ground">
+        <div class="pet left" id="player-pet"></div>
+        <div class="pet right" id="opponent-pet"></div>
+    </div>
+    <div class="audience">
+        <!-- Create multiple circles for the audience -->
+        ${Array.from({ length: 50 }).map(() => '<div class="circle"></div>').join('')}
+    </div>
+    <div id="result-popup"></div>
+    <div class="battle-log" id="battle-log"></div>
+    <button class="start-fight" onclick="startGame()">Start Game</button>
 
     <script>
-        const queueButton = document.getElementById('queue-button');
-        const joinGameButton = document.getElementById('join-game-button');
-        let inQueue = false;
+        const playerPet = document.getElementById('player-pet');
+        const opponentPet = document.getElementById('opponent-pet');
+        const resultPopup = document.getElementById('result-popup');
+        const battleLog = document.getElementById('battle-log');
+        const audience = document.querySelector('.audience');
 
-        queueButton.addEventListener('click', () => {
-            inQueue = !inQueue;
-            queueButton.textContent = inQueue ? 'Leave Queue' : 'Join Queue';
+        const zodiacSigns = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+        let recentBattles = [];
 
-            // Send request to server to join or leave queue
-            fetch('http://localhost:3000/queue', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ inQueue })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.matchFound) {
-                    joinGameButton.style.display = 'block';
-                } else {
-                    joinGameButton.style.display = 'none';
+        // Fetch equipped constellation
+        const equippedConstellation = localStorage.getItem('equippedConstellation') || 'Gemini'; // Default to Gemini if none
+        playerPet.style.backgroundImage = `url('/Images/${equippedConstellation}.png')`;
+
+        function getRandomOpponent() {
+            const randomIndex = Math.floor(Math.random() * zodiacSigns.length);
+            return zodiacSigns[randomIndex];
+        }
+
+        function updateBattleLog(result) {
+            recentBattles.unshift(result);
+            if (recentBattles.length > 10) {
+                recentBattles.pop();
+            }
+            battleLog.innerHTML = recentBattles.map(battle => `<div>${battle}</div>`).join('');
+        }
+
+        async function updateBattleResult(result) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${sessionId}/battle-result`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ result })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
-            })
-            .catch(error => console.error('Error:', error));
-        });
+            } catch (error) {
+                console.error('Error updating battle result:', error);
+            }
+        }
+
+        const constellations = [
+            { name: "Aries", image: "Images/aries.png" },
+            { name: "Taurus", image: "Images/taurus.png" },
+            { name: "Gemini", image: "Images/gemini.png" },
+            // Add more constellations as needed
+        ];
+
+        let gameInterval;
+        let gameDuration = 10000; // 10 seconds
+        let dotInterval = 500; // New dot every 0.5 seconds
+        let missedDots = 0; // Counter for missed dots
+        const maxMissedDots = 2; // Maximum allowed missed dots
+
+        function startGame() {
+            const arena = document.querySelector('.arena');
+            const startButton = document.querySelector('.start-fight');
+            const playerConstellation = document.getElementById('player-constellation');
+            const enemyConstellation = document.getElementById('enemy-constellation');
+
+            // Hide the start button
+            startButton.style.display = 'none';
+
+            // Set player and enemy constellations
+            const playerImage = constellations[0].image; // Assume the first constellation is equipped
+            const enemyImage = constellations[Math.floor(Math.random() * constellations.length)].image;
+
+            playerConstellation.style.backgroundImage = `url(${playerImage})`;
+            enemyConstellation.style.backgroundImage = `url(${enemyImage})`;
+
+            // Initial off-screen positions
+            playerConstellation.style.left = '-100px';
+            playerConstellation.style.top = '50%';
+            enemyConstellation.style.left = '100%';
+            enemyConstellation.style.top = '50%';
+
+            // Animate constellations entering the stage
+            setTimeout(() => {
+                playerConstellation.style.left = '30%';
+                enemyConstellation.style.left = '70%';
+            }, 500);
+
+            // Start spinning
+            playerConstellation.style.animation = 'spin 1s infinite linear';
+            enemyConstellation.style.animation = 'spin 1s infinite linear';
+
+            // Delay before starting the dot game
+            setTimeout(() => {
+                playerConstellation.style.display = 'none';
+                enemyConstellation.style.display = 'none';
+                startDotGame();
+            }, 3000); // 3 seconds of spinning
+        }
+
+        function startDotGame() {
+            const arena = document.querySelector('.arena');
+            let gameOver = false;
+            missedDots = 0; // Reset missed dots counter
+
+            function createDot() {
+                if (gameOver) return;
+
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.style.left = `${Math.random() * (arena.offsetWidth - 100)}px`;
+                dot.style.top = `${Math.random() * (arena.offsetHeight - 100)}px`;
+                arena.appendChild(dot);
+
+                // Animate dot shrinking
+                requestAnimationFrame(() => {
+                    dot.style.transform = 'scale(0)';
+                });
+
+                // Check if dot is clicked
+                dot.onclick = () => {
+                    dot.remove();
+                };
+
+                // Check if dot disappears
+                setTimeout(() => {
+                    if (arena.contains(dot)) {
+                        missedDots++;
+                        dot.remove();
+                        if (missedDots >= maxMissedDots) {
+                            gameOver = true;
+                            clearInterval(gameInterval);
+                            alert('You lose!');
+                            resetGame();
+                        }
+                    }
+                }, 2000); // Dot shrinks over 2 seconds
+            }
+
+            gameInterval = setInterval(createDot, dotInterval);
+
+            // End game after duration
+            setTimeout(() => {
+                if (!gameOver) {
+                    clearInterval(gameInterval);
+                    alert('You win!');
+                    resetGame();
+                }
+            }, gameDuration);
+        }
+
+        function resetGame() {
+            const arena = document.querySelector('.arena');
+            const startButton = document.querySelector('.start-fight');
+            arena.innerHTML = ''; // Clear all dots
+            startButton.style.display = 'block'; // Show the start button again
+        }
     </script>
 </body>
 </html>
