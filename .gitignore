@@ -2,10 +2,11 @@
 .env
 
 # Node modules
-# node_modules/
+node_modules/
 
 # Logs and Yml
 *.log
+*.github
 
 # OS generated files
 .DS_Store
