@@ -6,7 +6,6 @@ node_modules/
 
 # Logs and Yml
 *.log
-*.yml
 
 # OS generated files
 .DS_Store
